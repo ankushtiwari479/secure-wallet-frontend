@@ -9,7 +9,7 @@ import './App.css'
 
 function App() {
   useEffect(()=>{
-    axios.defaults.baseURL = 'https://secure-wallet-2e423483e107.herokuapp.com'; 
+    axios.defaults.baseURL = 'http://localhost:3000'||'https://secure-wallet-2e423483e107.herokuapp.com'; 
   },[])
   return (
     <div>

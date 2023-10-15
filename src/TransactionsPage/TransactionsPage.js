@@ -1,58 +1,74 @@
-import React from 'react';
-import { useEffect, useState } from 'react';
-import axios from 'axios'
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper , Button } from '@mui/material';
-
+import React, { useState, useEffect } from 'react';
+import EnhancedTable from './EnhancedTable'; // Import the EnhancedTable component
+import axios from 'axios';
 
 function TransactionsPage() {
-    // Fetch transactions and display them here
-    const [transactions, setTransactions] = useState([]);
-    useEffect(() => {
-    // Define the walletId if you have it from local storage
-    const walletId = 'your-wallet-id';
+  const [transactions, setTransactions] = useState([]);
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('date');
+  const [selected, setSelected] = useState([]);
 
-    // Define skip and limit as needed
+  useEffect(() => {
+    const walletId = JSON.parse(localStorage.getItem('wallet'))?.id;
     const skip = 0;
     const limit = 10;
 
-    axios.get(`/transactions?walletId=${walletId}&skip=${skip}&limit=${limit}`)
-        .then((response) => {
-        // Handle a successful response here
-        console.log('Transactions fetched:', response.data);
+    // Fetch transactions using Axios
+    axios
+      .get(`/transactions?walletId=${walletId}&skip=${skip}&limit=${limit}`)
+      .then((response) => {
         setTransactions(response.data);
-        })
-        .catch((error) => {
-        // Handle any errors here
+      })
+      .catch((error) => {
         console.error('Error fetching transactions:', error);
-        });
-    }, []); // The empty dependency array ensures this effect runs once when the component mounts
+      });
+  }, []);
 
-    const handleSort = (column) => {
-        // You can implement sorting logic here
-        // Update the transactions data based on the selected column
-        // Make sure to set the sorted data to a new state
-      };
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  const handleSelectAllClick = (event) => {
+    if (event.target.checked) {
+      const newSelected = transactions.map((transaction) => transaction.id);
+      setSelected(newSelected);
+    } else {
+      setSelected([]);
+    }
+  };
+
+  const handleClick = (event, id) => {
+    const selectedIndex = selected.indexOf(id);
+    let newSelected = [];
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selected, id);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selected.slice(1));
+    } else if (selectedIndex === selected.length - 1) {
+      newSelected = newSelected.concat(selected.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(
+        selected.slice(0, selectedIndex),
+        selected.slice(selectedIndex + 1)
+      );
+    }
+
+    setSelected(newSelected);
+  };
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-        <TableRow>
-            <TableCell>
-              <Button onClick={() => handleSort('date')}>Date</Button>
-            </TableCell>
-            <TableCell>
-              <Button onClick={() => handleSort('amount')}>Amount</Button>
-            </TableCell>
-            <TableCell>Description</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {/* Map through transactions and display them */}
-        </TableBody>
-      </Table>
-      {/* Add pagination and export CSV functionality */}
-    </TableContainer>
+    <EnhancedTable
+      rows={transactions}
+      order={order}
+      orderBy={orderBy}
+      onRequestSort={handleRequestSort}
+      onSelectAllClick={handleSelectAllClick}
+      selected={selected}
+      onClick={handleClick}
+    />
   );
 }
 
