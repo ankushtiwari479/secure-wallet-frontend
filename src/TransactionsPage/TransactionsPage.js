@@ -40,7 +40,7 @@ function TransactionsPage() {
   };
 
   const fetchTransactionsAfterPagination = (newPage, newRowsPerPage) => {
-    const walletId = JSON.parse(localStorage.getItem('wallet'))?.id;
+    const walletId = JSON.parse(localStorage.getItem('wallet'))?._id;
     const skip = newPage * newRowsPerPage;
     const limit = newRowsPerPage;
     axios
