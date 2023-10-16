@@ -77,7 +77,7 @@ function HomePage() {
 
   return (
     <Container sx={{ textAlign: "center", paddingTop: "3rem" }}>
-      <Typography variant='h6' sx={{ fontWeight: "bold", textAlign: "center" }}>CREATE WALLET</Typography>
+      <Typography variant='h6' sx={{ fontWeight: "bold", textAlign: "center" ,fontWeight: "bold", color: '#1876d2' }}>CREATE WALLET</Typography>
       <Container maxWidth="sm" className={"borderContainer"}>
         <Box mb={"1rem"} mt={"1rem"}>
           <TextField
