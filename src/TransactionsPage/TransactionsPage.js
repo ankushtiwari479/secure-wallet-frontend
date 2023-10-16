@@ -1,48 +1,57 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, IconButton, TablePagination, Container, Box, Icon } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, IconButton, TablePagination, Container, Box, Icon, Typography } from '@mui/material';
 import { format } from 'date-fns';
 import axios from 'axios';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import GridOnIcon from '@mui/icons-material/GridOn';
 import Papa from 'papaparse';
+import { toast } from 'react-toastify';
+
 function TransactionsPage() {
   const [transactions, setTransactions] = useState([]);
-  const [sortedBy, setSortedBy] = useState(null);
-  const [sortDirection, setSortDirection] = useState('asc'); // Track the sorting direction
+  const [sortDirectionDate, setSortDirectionDate] = useState(null); // Track sorting direction for date
+  const [sortDirectionAmount, setSortDirectionAmount] = useState(null); // Track sorting direction for amount
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [count,setCount] = useState(10)
+  const [count, setCount] = useState(10);
 
   const handleSort = (column) => {
-    let sortedTransactions = [...transactions];
-
-    if (sortedBy === column) {
-      sortedTransactions.reverse(); // Reverse the array if already sorted by the same column
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); // Toggle the sorting direction
-    } else {
-      sortedTransactions.sort((a, b) => {
-        if (column === 'date') {
-          setSortDirection('asc'); // Default to ascending when sorting by date
-          return new Date(a.date) - new Date(b.date);
-        } else if (column === 'amount') {
-          setSortDirection('asc'); // Default to ascending when sorting by amount
-          return a.amount - b.amount;
-        }
-        return 0; // Default case
-      });
+    let newSortDirection;
+    if (column === 'date') {
+        newSortDirection = sortDirectionDate === 'asc' ? 'desc' : 'asc';
+      setSortDirectionDate(newSortDirection);
+    } else if (column === 'amount') {
+        newSortDirection = sortDirectionAmount === 'asc' ? 'desc' : 'asc';
+      setSortDirectionAmount(newSortDirection);    } else {
+      newSortDirection = 'asc'; // Default case
     }
-
-    setSortedBy(column);
-    setTransactions(sortedTransactions);
   };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
+    fetchTransactionsAfterPagination(newPage, rowsPerPage);
   };
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    setPage(0); // Reset page when changing rowsPerPage
+    fetchTransactionsAfterPagination(0, parseInt(event.target.value, 10));
+  };
+
+  const fetchTransactionsAfterPagination = (newPage, newRowsPerPage) => {
+    const walletId = JSON.parse(localStorage.getItem('wallet'))?.id;
+    const skip = newPage * newRowsPerPage;
+    const limit = newRowsPerPage;
+    axios
+      .get(`/transactions?walletId=${walletId}&skip=${skip}&limit=${limit}`)
+      .then((response) => {
+        setTransactions(response.data.transactions);
+        setCount(response.data.count);
+      })
+      .catch((error) => {
+        console.error('Error fetching transactions:', error);
+      });
   };
 
   const exportAsCSV = () => {
@@ -62,25 +71,49 @@ function TransactionsPage() {
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
+    toast.success("CSV downloaded successfully")
   };
 
-  useEffect(() => {
+  const fetchTransactions = (params) => {
     const walletId = JSON.parse(localStorage.getItem('wallet'))?.id;
     const skip = page * rowsPerPage;
     const limit = rowsPerPage;
+    let obj = {
+      walletId:walletId,skip:skip,limit:limit
+    }
+    if(params){
+      obj={...obj,...params}
+    }
     axios
-      .get(`/transactions?walletId=${walletId}&skip=${skip}&limit=${limit}`)
+      .get(`/transactions`,{params:obj})
       .then((response) => {
         setTransactions(response.data.transactions);
-        setCount(response.data.count)
+        setCount(response.data.count);
       })
       .catch((error) => {
         console.error('Error fetching transactions:', error);
       });
+  }
+
+  useEffect(()=>{
+    fetchTransactions({
+      dateSort:sortDirectionDate,
+      amountSort:sortDirectionAmount
+    })
+  },[sortDirectionAmount,sortDirectionDate])
+
+  useEffect(() => {
+    fetchTransactions()
   }, [page, rowsPerPage]);
 
+
   return (
-    <Container sx={{ padding: "2rem" }}>
+    <Container sx={{ padding: "1rem" }}>
+      <Box sx={{margin:"2rem",textAlign:"center"}}>
+      <Typography variant='h6' sx={{ fontWeight: "bold", color: '#1876d2' }} gutterBottom>
+        LIST OF TRANSACTIONS 
+      </Typography>
+      </Box>
       <Paper>
         <TableContainer>
           <Table>
@@ -88,12 +121,12 @@ function TransactionsPage() {
               <TableRow>
                 <TableCell>
                   <Button onClick={() => handleSort('date')}>
-                    Date {sortedBy === 'date' && sortDirection === 'asc' ? <ArrowUpwardIcon sx={{fontSize:"18px"}}/> : <ArrowDownwardIcon sx={{fontSize:"18px"}}/>}
+                    Date {sortDirectionDate === 'asc' ? <ArrowUpwardIcon sx={{ fontSize: "18px" }} /> : sortDirectionDate === 'desc' ? <ArrowDownwardIcon sx={{ fontSize: "18px" }} /> : ''}
                   </Button>
                 </TableCell>
                 <TableCell>
                   <Button onClick={() => handleSort('amount')}>
-                    Amount {sortedBy === 'amount' && sortDirection === 'asc' ? <ArrowUpwardIcon sx={{fontSize:"18px"}}/> : <ArrowDownwardIcon sx={{fontSize:"18px"}}/>}
+                    Amount {sortDirectionAmount === 'asc' ? <ArrowUpwardIcon sx={{ fontSize: "18px" }} /> : sortDirectionAmount === 'desc' ? <ArrowDownwardIcon sx={{ fontSize: "18px" }} /> : ''}
                   </Button>
                 </TableCell>
                 <TableCell>
@@ -124,7 +157,7 @@ function TransactionsPage() {
         />
       </Paper>
       <Box sx={{ textAlign: "right" }} mt="2rem">
-        <Button variant='outlined' onClick={exportAsCSV}>Export as CSV</Button>
+        <Button variant='outlined' onClick={exportAsCSV}>Export as CSV &nbsp;&nbsp; <GridOnIcon/></Button>
       </Box>
     </Container>
   );

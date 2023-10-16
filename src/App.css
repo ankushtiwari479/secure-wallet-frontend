@@ -37,8 +37,11 @@
 }
 
 
-.borderContainer{
-  border: 1px solid grey;
+.borderContainer {
+  border: 2px solid transparent;
   padding: 3rem;
   margin-top: 3rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-image: linear-gradient(45deg, #2196F3 30%, #21CBF3 90%);
+  border-image-slice: 1;
 }

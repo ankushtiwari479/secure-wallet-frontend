@@ -1,8 +1,9 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState,useEffect, useCallback } from 'react';
 import { TextField, Button, Switch, Container, Box, Typography } from '@mui/material';
 import axios from 'axios'
 import { fetchWallet } from '../apis';
 import CreateTransaction from '../CreateTransaction/CreateTransaction'
+import { toast } from 'react-toastify';
 
 function HomePage() {
   const [username, setUsername] = useState('');
@@ -10,7 +11,8 @@ function HomePage() {
   const [isCredit, setIsCredit] = useState(true);
   const [wallet,setWallet] = useState(null)
 
-  useEffect(()=>{
+
+  const fetWalletData = useCallback(() => {
     let data = localStorage.getItem('wallet');
     if(data){
       let walletDetails = JSON.parse(data);
@@ -20,8 +22,20 @@ function HomePage() {
     }
   },[])
 
+  useEffect(()=>{
+    fetWalletData()
+  },[])
+
 
   const handleCreateWallet = () => {
+
+    if(!username){
+      return toast.warning("Wallet cannot be created with empty Username")
+    }
+    if(initialBalance<=0){
+      return toast.warning("Wallet cannot be created with 0 or less then 0 balance")
+    }
+
     const data = {
       balance: initialBalance,
       name: username,
@@ -32,21 +46,25 @@ function HomePage() {
         // Handle a successful response here
         localStorage.setItem('wallet',JSON.stringify(response.data))
         setWallet(response.data)
+        toast.success("Wallet Created Successfull")
         console.log('Wallet created:', response.data);
       })
       .catch((error) => {
         // Handle any errors here
+        toast.error(error?.response?.data?.error || "Error while creating wallet")
         console.error('Error creating wallet:', error);
       });
   };
 
   if(wallet){
-    return <CreateTransaction wallet={wallet}/>
+    return <CreateTransaction wallet={wallet} fetWalletData={fetWalletData}/>
   }
 
   return (
+    <Container sx={{textAlign:"center",paddingTop:"3rem"}}>
+    <Typography variant='h6' sx={{fontWeight:"bold",textAlign:"center"}}>CREATE WALLET</Typography>
     <Container maxWidth="sm" className={"borderContainer"}>
-      <Box mb={"2rem"} mt={"2rem"}>
+      <Box mb={"1rem"} mt={"1rem"}>
       <TextField
         fullWidth
         label="Username"
@@ -58,6 +76,7 @@ function HomePage() {
       <TextField
         fullWidth
         label="Initial Balance"
+        type='number'
         value={initialBalance}
         onChange={(e) => setInitialBalance(e.target.value)}
       />
@@ -68,6 +87,7 @@ function HomePage() {
       </Button>
       </Box>
       {/* Add link to navigate to TransactionsPage */}
+    </Container>
     </Container>
   );
 }
