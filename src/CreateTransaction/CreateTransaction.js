@@ -21,7 +21,7 @@ const Wallet = ({ name, balance, seeTransaction }) => {
   }, [balance]);
 
   return (
-    <Card variant="outlined" sx={{ borderRadius: '16px', boxShadow: 3, background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)' }}>
+    <Card variant="outlined" sx={{ borderRadius: '8px', boxShadow: 3, background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',width:"100%" }}>
       <CardContent>
         <Box mb="1rem">
           <Typography sx={{ color: '#fff', fontWeight: 'bold' }} variant='h6'>YOUR WALLET</Typography>
@@ -43,7 +43,7 @@ const Wallet = ({ name, balance, seeTransaction }) => {
   );
 };
 
-function CreateTransaction({wallet,fetWalletData}) {
+function CreateTransaction({wallet,fetchWalletData}) {
   const [value, setValue] = useState(0);
   const [desc, setDesc] = useState('');
   const [isCredit, setIsCredit] = useState(true);
@@ -71,7 +71,7 @@ function CreateTransaction({wallet,fetWalletData}) {
         setValue(0)
         setDesc('')
         toast.success('Transaction completed successfully');
-        fetWalletData();
+        fetchWalletData();
       })
       .catch((error) => {
         console.error('Error creating wallet:', error);
@@ -85,7 +85,7 @@ function CreateTransaction({wallet,fetWalletData}) {
 
   return (
     <>
-    <Container maxWidth="sm" sx={{marginTop:"2rem"}} >
+    <Container maxWidth="sm" sx={{marginTop:"2rem",padding:"0 !important"}} >
       <Wallet name={wallet.name} balance={wallet.balance} seeTransaction={viewTransaction}/>
     </Container>
     <Container maxWidth="sm" className={"borderContainer"}>

@@ -38,10 +38,12 @@
 
 
 .borderContainer {
-  border: 2px solid transparent;
+  border: 2px solid #2196F3;
   padding: 3rem;
+  border-radius: 8px !important;
   margin-top: 3rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border-image: linear-gradient(45deg, #2196F3 30%, #21CBF3 90%);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+
+  /* border-image: linear-gradient(45deg, #2196F3 30%, #21CBF3 90%); */
   border-image-slice: 1;
 }
