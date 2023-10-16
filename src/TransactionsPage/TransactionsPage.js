@@ -75,7 +75,7 @@ function TransactionsPage() {
   };
 
   const fetchTransactions = (params) => {
-    const walletId = JSON.parse(localStorage.getItem('wallet'))?.id;
+    const walletId = JSON.parse(localStorage.getItem('wallet'))?._id;
     const skip = page * rowsPerPage;
     const limit = rowsPerPage;
     let obj = {
@@ -138,7 +138,7 @@ function TransactionsPage() {
             </TableHead>
             <TableBody>
               {transactions.map((transaction) => (
-                <TableRow key={transaction.id}>
+                <TableRow key={transaction._id}>
                   <TableCell>{format(new Date(transaction.date), 'MM/dd/yyyy')}</TableCell>
                   <TableCell>{transaction.amount}</TableCell>
                   <TableCell>{transaction.description}</TableCell>
